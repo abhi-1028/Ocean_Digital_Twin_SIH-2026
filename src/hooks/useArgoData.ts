@@ -1,98 +1,92 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
-import { getArgoData } from "../api/oceanApi";
-import { mockArgoObservations } from "../data/mockData";
-
-import type { ArgoObservation } from "../types/ocean";
+import { getArgoData } from '../api/oceanApi'
+import { mockArgoObservations } from '../data/mockData'
+import type { ArgoObservation } from '../types/ocean'
 
 interface UseArgoDataResult {
-  observations: ArgoObservation[];
-  loading: boolean;
-  error: string | null;
-  source: "observation" | "mock";
+  observations: ArgoObservation[]
+  loading: boolean
+  error: string | null
+  source: string
 }
 
-export function useArgoData(
-  regionId: string
-): UseArgoDataResult {
-  const [observations, setObservations] =
-    useState<ArgoObservation[]>([]);
+function mapObservation(
+  regionId: string,
+  item: {
+    float_id: string
+    latitude: number
+    longitude: number
+    observation_time: string
+    depth: number
+    temperature: number
+    salinity: number
+  },
+  index: number,
+): ArgoObservation {
+  return {
+    id: `${regionId}-${item.float_id}-${item.observation_time}-${item.depth}-${index}`,
+    regionId,
+    floatId: item.float_id,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    observationTime: item.observation_time,
+    depth: item.depth,
+    temperature: item.temperature,
+    salinity: item.salinity,
+  }
+}
 
-  const [loading, setLoading] = useState(false);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  const [source, setSource] =
-    useState<"observation" | "mock">("mock");
+export function useArgoData(regionId: string): UseArgoDataResult {
+  const [observations, setObservations] = useState<ArgoObservation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [source, setSource] = useState('loading')
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
-    async function loadData() {
-      setLoading(true);
-      setError(null);
+    async function load() {
+      setLoading(true)
+      setError(null)
 
       try {
-        const data = await getArgoData(regionId);
+        const data = await getArgoData(regionId)
+        if (cancelled) return
 
-        if (cancelled) return;
+        const mapped = data.observations.map((item, index) =>
+          mapObservation(regionId, item, index),
+        )
 
-        if (
-          data.observations &&
-          data.observations.length > 0
-        ) {
-          setObservations(data.observations);
-          setSource(data.source || "observation");
+        if (mapped.length > 0) {
+          setObservations(mapped)
+          setSource(data.source || 'observation')
         } else {
-          const filteredMock =
-            mockArgoObservations.filter(
-              (observation) =>
-                observation.regionId === regionId
-            );
-
-          setObservations(filteredMock);
-          setSource("mock");
+          throw new Error('No Argo observations are available for this region.')
         }
       } catch (err) {
-        if (cancelled) return;
+        if (cancelled) return
 
-        const filteredMock =
-          mockArgoObservations.filter(
-            (observation) =>
-              observation.regionId === regionId
-          );
-
-        setObservations(filteredMock);
-        setSource("mock");
-
+        const fallback = mockArgoObservations.filter(
+          (item) => item.regionId === regionId,
+        )
+        setObservations(fallback)
+        setSource('synthetic demo fallback')
         setError(
           err instanceof Error
             ? err.message
-            : "Unable to load Argo observations."
-        );
-
-        console.warn(
-          `Argo backend unavailable for ${regionId}. Using mock data.`
-        );
+            : 'Unable to load Argo observations.',
+        )
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false)
       }
     }
 
-    loadData();
-
+    load()
     return () => {
-      cancelled = true;
-    };
-  }, [regionId]);
+      cancelled = true
+    }
+  }, [regionId])
 
-  return {
-    observations,
-    loading,
-    error,
-    source,
-  };
+  return { observations, loading, error, source }
 }

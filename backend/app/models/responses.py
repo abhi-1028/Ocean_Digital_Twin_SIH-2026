@@ -14,15 +14,25 @@ class Region(BaseModel):
     name: str
 
 
+class OceanPoint(BaseModel):
+    latitude: float
+    longitude: float
+    value: float
+
+
 class OceanDataResponse(BaseModel):
     region_id: str
     variable: str
+    units: Optional[str] = None
+    dimensions: list[str] = []
     latitude: list[float]
     longitude: list[float]
     depth: list[float]
     time: list[str]
     shape: list[int]
     values: Any
+    points: list[OceanPoint] = []
+    source: str = "model"
 
 
 class ArgoObservation(BaseModel):
@@ -40,6 +50,7 @@ class ArgoDataResponse(BaseModel):
     float_ids: list[str]
     observation_count: int
     observations: list[ArgoObservation]
+    source: str = "observation"
 
 
 class ArgoFloatResponse(BaseModel):
@@ -47,6 +58,7 @@ class ArgoFloatResponse(BaseModel):
     float_id: str
     observation_count: int
     observations: list[ArgoObservation]
+    source: str = "observation"
 
 
 class ComparisonResponse(BaseModel):
@@ -61,3 +73,4 @@ class ComparisonResponse(BaseModel):
     rmse: float
     matching_method: str
     matching_tolerances: dict[str, float]
+    source: str = "model + observation"

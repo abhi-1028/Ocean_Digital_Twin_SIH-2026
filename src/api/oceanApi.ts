@@ -1,44 +1,46 @@
-import { apiGet } from "./client";
-
+import { apiGet } from './client'
 import type {
-  ArgoDataResponse,
-  ArgoProfileResponse,
-  ComparisonResponse,
-  OceanDataResponse,
-} from "../types/api";
+  BackendArgoDataResponse,
+  BackendArgoFloatResponse,
+  BackendComparisonResponse,
+  BackendOceanDataResponse,
+} from '../types/api'
+import type { OceanVariable } from '../types/ocean'
 
-export async function getOceanData(
+export function getOceanData(
   regionId: string,
-  variable: "temperature" | "salinity",
-  depth: number
-): Promise<OceanDataResponse> {
-  return apiGet<OceanDataResponse>(
-    `/api/ocean/${regionId}?variable=${variable}&depth=${depth}`
-  );
+  variable: OceanVariable,
+  depth: number,
+) {
+  const params = new URLSearchParams({
+    variable,
+    depth: String(depth),
+    max_points: '1200',
+  })
+  return apiGet<BackendOceanDataResponse>(
+    `/api/ocean/${encodeURIComponent(regionId)}?${params.toString()}`,
+  )
 }
 
-export async function getArgoData(
-  regionId: string
-): Promise<ArgoDataResponse> {
-  return apiGet<ArgoDataResponse>(
-    `/api/argo/${regionId}`
-  );
+export function getArgoData(regionId: string) {
+  return apiGet<BackendArgoDataResponse>(
+    `/api/argo/${encodeURIComponent(regionId)}`,
+  )
 }
 
-export async function getArgoProfile(
-  regionId: string,
-  floatId: string
-): Promise<ArgoProfileResponse> {
-  return apiGet<ArgoProfileResponse>(
-    `/api/argo/${regionId}/${floatId}`
-  );
+export function getArgoProfile(regionId: string, floatId: string) {
+  return apiGet<BackendArgoFloatResponse>(
+    `/api/argo/${encodeURIComponent(regionId)}/${encodeURIComponent(floatId)}`,
+  )
 }
 
-export async function getComparison(
+export function getComparison(
   regionId: string,
-  floatId: string
-): Promise<ComparisonResponse> {
-  return apiGet<ComparisonResponse>(
-    `/api/compare/${regionId}/${floatId}`
-  );
+  floatId: string,
+  variable: OceanVariable,
+) {
+  const params = new URLSearchParams({ variable })
+  return apiGet<BackendComparisonResponse>(
+    `/api/compare/${encodeURIComponent(regionId)}/${encodeURIComponent(floatId)}?${params.toString()}`,
+  )
 }

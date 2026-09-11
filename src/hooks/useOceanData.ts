@@ -1,95 +1,77 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
-import { getOceanData } from "../api/oceanApi";
-import { mockOceanPoints } from "../data/mockData";
-
-import type {
-  OceanPoint,
-  OceanVariable,
-} from "../types/ocean";
+import { getOceanData } from '../api/oceanApi'
+import { mockOceanPoints } from '../data/mockData'
+import type { OceanPoint, OceanVariable } from '../types/ocean'
 
 interface UseOceanDataResult {
-  points: OceanPoint[];
-  loading: boolean;
-  error: string | null;
-  source: "model" | "mock";
+  points: OceanPoint[]
+  loading: boolean
+  error: string | null
+  source: string
+  actualDepth: number
+  timestamp: string | null
 }
 
 export function useOceanData(
   regionId: string,
   variable: OceanVariable,
-  depth: number
+  depth: number,
 ): UseOceanDataResult {
-  const [points, setPoints] =
-    useState<OceanPoint[]>(mockOceanPoints);
-
-  const [loading, setLoading] = useState(false);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  const [source, setSource] =
-    useState<"model" | "mock">("mock");
+  const [points, setPoints] = useState<OceanPoint[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [source, setSource] = useState('loading')
+  const [actualDepth, setActualDepth] = useState(depth)
+  const [timestamp, setTimestamp] = useState<string | null>(null)
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
-    async function loadData() {
-      setLoading(true);
-      setError(null);
+    async function load() {
+      setLoading(true)
+      setError(null)
 
       try {
-        const data = await getOceanData(
-          regionId,
-          variable,
-          depth
-        );
+        const data = await getOceanData(regionId, variable, depth)
+        if (cancelled) return
 
-        if (cancelled) return;
-
-        if (
-          data.points &&
-          data.points.length > 0
-        ) {
-          setPoints(data.points);
-          setSource(data.source || "model");
-        } else {
-          setPoints(mockOceanPoints);
-          setSource("mock");
+        if (!data.points?.length) {
+          throw new Error('No model points are available for this selection.')
         }
+
+        setPoints(data.points)
+        setActualDepth(data.depth?.[0] ?? depth)
+        setTimestamp(data.time?.[0] ?? null)
+        setSource(data.source || 'model')
       } catch (err) {
-        if (cancelled) return;
+        if (cancelled) return
 
-        console.warn(
-          "Ocean backend unavailable. Using mock ocean data."
-        );
-
-        setPoints(mockOceanPoints);
-        setSource("mock");
-
+        setPoints((mockOceanPoints[regionId] ?? []).map((point) => ({
+          ...point,
+          value:
+            variable === 'salinity'
+              ? 35.1 + (point.value - 28.5) * 0.12
+              : point.value,
+        })))
+        setActualDepth(depth)
+        setTimestamp(null)
+        setSource('synthetic demo fallback')
         setError(
           err instanceof Error
             ? err.message
-            : "Unable to load ocean data."
-        );
+            : 'Unable to load ocean model data.',
+        )
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false)
       }
     }
 
-    loadData();
-
+    load()
     return () => {
-      cancelled = true;
-    };
-  }, [regionId, variable, depth]);
+      cancelled = true
+    }
+  }, [regionId, variable, depth])
 
-  return {
-    points,
-    loading,
-    error,
-    source,
-  };
+  return { points, loading, error, source, actualDepth, timestamp }
 }

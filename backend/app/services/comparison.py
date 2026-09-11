@@ -83,6 +83,12 @@ def compare_float(
     within the configured tolerances.
     """
 
+    if variable not in {"temperature", "salinity"}:
+        raise ValueError(
+            f"Variable '{variable}' not available. "
+            "Available variables: ['temperature', 'salinity']"
+        )
+
     # -----------------------------------------------------
     # Load Argo observations
     # -----------------------------------------------------
@@ -403,6 +409,8 @@ def compare_float(
                 "nearest model grid point "
                 "within configured tolerances"
             ),
+
+            "source": "model + observation",
 
             "matching_tolerances": {
                 "latitude_degrees": (

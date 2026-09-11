@@ -1,121 +1,88 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import * as THREE from 'three'
-import { Canvas, useFrame } from '@react-three/fiber'
-import {
-  OrbitControls,
-  PerspectiveCamera,
-  Text,
-} from '@react-three/drei'
-import type { ArgoFloat, OceanVariable } from '../types/ocean'
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei'
+
+import type { ArgoFloat, OceanPoint, OceanVariable } from '../types/ocean'
 
 interface OceanViewerProps {
   variable: OceanVariable
   depth: number
+  points: OceanPoint[]
   floats: ArgoFloat[]
   selectedFloat: string | null
   onFloatSelect: (floatId: string) => void
 }
 
-function OceanSurface({
+function ModelField({
+  points,
   variable,
   depth,
 }: {
+  points: OceanPoint[]
   variable: OceanVariable
   depth: number
 }) {
-  const meshRef = useRef<THREE.Mesh>(null)
-
   const geometry = useMemo(() => {
-    const geometry = new THREE.PlaneGeometry(
-      13,
-      8,
-      36,
-      26
-    )
+    const geometry = new THREE.BufferGeometry()
+    if (!points.length) return geometry
 
-    const positions = geometry.attributes.position
+    const latitudes = points.map((point) => point.latitude)
+    const longitudes = points.map((point) => point.longitude)
+    const values = points.map((point) => point.value)
 
-    for (let i = 0; i < positions.count; i++) {
-      const x = positions.getX(i)
-      const y = positions.getY(i)
+    const minLat = Math.min(...latitudes)
+    const maxLat = Math.max(...latitudes)
+    const minLon = Math.min(...longitudes)
+    const maxLon = Math.max(...longitudes)
+    const minValue = Math.min(...values)
+    const maxValue = Math.max(...values)
+    const latRange = Math.max(maxLat - minLat, 0.001)
+    const lonRange = Math.max(maxLon - minLon, 0.001)
+    const valueRange = Math.max(maxValue - minValue, 0.001)
 
-      const wave =
-        Math.sin(x * 1.4) * 0.18 +
-        Math.cos(y * 1.7) * 0.14 +
-        Math.sin((x + y) * 2.2) * 0.07
-
-      positions.setZ(i, wave)
-    }
-
-    positions.needsUpdate = true
-    geometry.computeVertexNormals()
-
-    return geometry
-  }, [])
-
-  const colors = useMemo(() => {
-    const count = geometry.attributes.position.count
-    const colorArray = new Float32Array(count * 3)
+    const positions: number[] = []
+    const colors: number[] = []
     const color = new THREE.Color()
 
-    for (let i = 0; i < count; i++) {
-      const y = geometry.attributes.position.getY(i)
+    points.forEach((point) => {
+      const x = ((point.longitude - minLon) / lonRange - 0.5) * 11.5
+      const z = ((point.latitude - minLat) / latRange - 0.5) * 6.8
+      const normalized = (point.value - minValue) / valueRange
+      const y = normalized * 0.55 - depth / 2200
 
-      const normalized =
-        Math.max(0, Math.min(1, (y + 4) / 8))
+      positions.push(x, y, z)
 
       if (variable === 'temperature') {
-        color.setHSL(
-          0.62 - normalized * 0.42,
-          0.82,
-          0.48
-        )
+        color.setHSL(0.66 - normalized * 0.52, 0.82, 0.5)
       } else {
-        color.setHSL(
-          0.52 - normalized * 0.1,
-          0.7,
-          0.43
-        )
+        color.setHSL(0.54 - normalized * 0.12, 0.72, 0.45)
       }
+      colors.push(color.r, color.g, color.b)
+    })
 
-      colorArray[i * 3] = color.r
-      colorArray[i * 3 + 1] = color.g
-      colorArray[i * 3 + 2] = color.b
-    }
+    geometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(positions, 3),
+    )
+    geometry.setAttribute(
+      'color',
+      new THREE.Float32BufferAttribute(colors, 3),
+    )
 
-    return colorArray
-  }, [geometry, variable])
-
-  useFrame((state) => {
-    if (!meshRef.current) return
-
-    meshRef.current.rotation.z =
-      Math.sin(state.clock.elapsedTime * 0.12) * 0.008
-
-    meshRef.current.position.y =
-      -depth / 1100
-  })
-
-  geometry.setAttribute(
-    'color',
-    new THREE.BufferAttribute(colors, 3)
-  )
+    return geometry
+  }, [points, variable, depth])
 
   return (
-    <mesh
-      ref={meshRef}
-      geometry={geometry}
-      rotation={[-Math.PI / 2, 0, 0]}
-    >
-      <meshStandardMaterial
+    <points geometry={geometry}>
+      <pointsMaterial
         vertexColors
-        roughness={0.65}
-        metalness={0.05}
-        side={THREE.DoubleSide}
+        size={0.36}
+        sizeAttenuation
         transparent
-        opacity={0.96}
+        opacity={0.95}
       />
-    </mesh>
+    </points>
   )
 }
 
@@ -123,7 +90,6 @@ function OceanGrid() {
   return (
     <gridHelper
       args={[14, 28, '#31566b', '#173344']}
-      rotation={[0, 0, 0]}
       position={[0, -0.18, 0]}
     />
   )
@@ -134,20 +100,11 @@ function DepthLayers() {
     <>
       <mesh position={[0, -0.65, 0]}>
         <boxGeometry args={[12.5, 0.04, 7.5]} />
-        <meshBasicMaterial
-          color="#0b3042"
-          transparent
-          opacity={0.35}
-        />
+        <meshBasicMaterial color="#0b3042" transparent opacity={0.35} />
       </mesh>
-
       <mesh position={[0, -1.2, 0]}>
         <boxGeometry args={[11.5, 0.04, 6.5]} />
-        <meshBasicMaterial
-          color="#09283a"
-          transparent
-          opacity={0.22}
-        />
+        <meshBasicMaterial color="#09283a" transparent opacity={0.22} />
       </mesh>
     </>
   )
@@ -155,20 +112,27 @@ function DepthLayers() {
 
 function FloatMarker({
   float,
+  floats,
   selected,
   onClick,
 }: {
   float: ArgoFloat
+  floats: ArgoFloat[]
   selected: boolean
   onClick: () => void
 }) {
-  const x =
-    ((float.longitude - 88) / 8) * 5.5
+  const latitudes = floats.map((item) => item.latitude)
+  const longitudes = floats.map((item) => item.longitude)
+  const minLat = Math.min(...latitudes)
+  const maxLat = Math.max(...latitudes)
+  const minLon = Math.min(...longitudes)
+  const maxLon = Math.max(...longitudes)
+  const latRange = Math.max(maxLat - minLat, 0.001)
+  const lonRange = Math.max(maxLon - minLon, 0.001)
 
-  const z =
-    ((float.latitude - 15) / 8) * 3.5
-
-  const y = selected ? 0.25 : 0.08
+  const x = ((float.longitude - minLon) / lonRange - 0.5) * 11.5
+  const z = ((float.latitude - minLat) / latRange - 0.5) * 6.8
+  const y = selected ? 0.45 : 0.18
 
   return (
     <group
@@ -179,10 +143,7 @@ function FloatMarker({
       }}
     >
       <mesh>
-        <sphereGeometry
-          args={[selected ? 0.16 : 0.11, 20, 20]}
-        />
-
+        <sphereGeometry args={[selected ? 0.18 : 0.12, 20, 20]} />
         <meshStandardMaterial
           color={selected ? '#ffffff' : '#8ff5ff'}
           emissive={selected ? '#48dfff' : '#087d99'}
@@ -208,44 +169,27 @@ function FloatMarker({
 function Scene({
   variable,
   depth,
+  points,
   floats,
   selectedFloat,
   onFloatSelect,
 }: OceanViewerProps) {
   return (
     <>
-      <PerspectiveCamera
-        makeDefault
-        position={[0, 5.8, 9.5]}
-        fov={48}
-      />
-
+      <PerspectiveCamera makeDefault position={[0, 5.8, 9.5]} fov={48} />
       <ambientLight intensity={1.1} />
+      <directionalLight position={[4, 8, 5]} intensity={2.2} />
+      <pointLight position={[-5, 3, -4]} intensity={1.4} color="#46d8ff" />
 
-      <directionalLight
-        position={[4, 8, 5]}
-        intensity={2.2}
-      />
-
-      <pointLight
-        position={[-5, 3, -4]}
-        intensity={1.4}
-        color="#46d8ff"
-      />
-
-      <OceanSurface
-        variable={variable}
-        depth={depth}
-      />
-
+      <ModelField points={points} variable={variable} depth={depth} />
       <OceanGrid />
-
       <DepthLayers />
 
       {floats.map((float) => (
         <FloatMarker
           key={float.id}
           float={float}
+          floats={floats}
           selected={selectedFloat === float.id}
           onClick={() => onFloatSelect(float.id)}
         />
@@ -265,6 +209,7 @@ function Scene({
 function OceanViewer({
   variable,
   depth,
+  points,
   floats,
   selectedFloat,
   onFloatSelect,
@@ -273,53 +218,27 @@ function OceanViewer({
     <section className="viewer-panel panel">
       <div className="viewer-header">
         <div>
-          <div className="panel-title">
-            Ocean Visualization
-          </div>
-
-          <div className="panel-subtitle">
-            Interactive 3D model field
-          </div>
+          <div className="panel-title">Ocean Visualization</div>
+          <div className="panel-subtitle">Interactive 3D model field</div>
         </div>
 
         <div className="viewer-tags">
-          <span className="viewer-tag">
-            MODEL FIELD
-          </span>
-
+          <span className="viewer-tag">MODEL FIELD</span>
           <span className="viewer-tag highlight">
-            {variable === 'temperature'
-              ? 'Temperature'
-              : 'Salinity'}
+            {variable === 'temperature' ? 'Temperature' : 'Salinity'}
           </span>
-
-          <span className="viewer-tag">
-            {depth} m
-          </span>
+          <span className="viewer-tag">{depth} m</span>
         </div>
       </div>
 
       <div className="canvas-wrapper">
-        <Canvas
-          dpr={[1, 2]}
-          gl={{
-            antialias: true,
-            alpha: false,
-          }}
-        >
-          <color
-            attach="background"
-            args={['#06151e']}
-          />
-
-          <fog
-            attach="fog"
-            args={['#06151e', 8, 18]}
-          />
-
+        <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: false }}>
+          <color attach="background" args={['#06151e']} />
+          <fog attach="fog" args={['#06151e', 8, 18]} />
           <Scene
             variable={variable}
             depth={depth}
+            points={points}
             floats={floats}
             selectedFloat={selectedFloat}
             onFloatSelect={onFloatSelect}
@@ -328,11 +247,8 @@ function OceanViewer({
 
         <div className="viewer-overlay">
           <div className="legend-title">
-            {variable === 'temperature'
-              ? 'TEMPERATURE'
-              : 'SALINITY'}
+            {variable === 'temperature' ? 'TEMPERATURE' : 'SALINITY'}
           </div>
-
           <div className="legend-scale">
             <span>Low</span>
             <div className="legend-gradient" />

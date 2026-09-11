@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
+from backend.app.models.responses import ComparisonResponse
+
 from backend.app.services.comparison import compare_float
 
 
@@ -9,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{region_id}/{float_id}")
+@router.get("/{region_id}/{float_id}", response_model=ComparisonResponse)
 def compare_argo_float(
     region_id: str,
     float_id: str,

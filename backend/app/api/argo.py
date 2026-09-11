@@ -42,6 +42,7 @@ def get_argo_data(region_id: str):
             "float_ids": get_float_ids(dataframe),
             "observation_count": len(dataframe),
             "observations": serialize_observations(dataframe),
+            "source": "observation",
         }
 
     except FileNotFoundError as exc:
@@ -93,6 +94,7 @@ def get_argo_float(
             "float_id": float_id,
             "observation_count": len(float_data),
             "observations": serialize_observations(float_data),
+            "source": "observation",
         }
 
     except FileNotFoundError as exc:
