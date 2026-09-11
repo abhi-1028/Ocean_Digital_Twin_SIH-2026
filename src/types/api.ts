@@ -1,8 +1,8 @@
 import type {
   ArgoObservation,
   OceanPoint,
-  ValidationMetrics,
   ProfilePoint,
+  ValidationMetrics,
 } from "./ocean";
 
 export interface OceanDataResponse {
@@ -32,12 +32,10 @@ export interface ComparisonResponse {
   float_id: string;
   variable: "temperature" | "salinity";
   metrics: ValidationMetrics;
-
   modelProfile?: {
     depth: number;
     value: number;
   }[];
-
   observationProfile?: {
     depth: number;
     value: number;

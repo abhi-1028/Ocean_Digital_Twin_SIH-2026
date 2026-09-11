@@ -1,41 +1,43 @@
 import type {
   ArgoFloat,
+  ArgoObservation,
+  OceanPoint,
   ProfilePoint,
   Region,
   ValidationMetrics,
-} from '../types/ocean'
+} from "../types/ocean";
 
 export const regions: Region[] = [
   {
-    id: 'bay-of-bengal',
-    name: 'Bay of Bengal',
+    id: "bay-of-bengal",
+    name: "Bay of Bengal",
     center: [15, 88],
-    description: 'Tropical northern Indian Ocean',
+    description: "Tropical northern Indian Ocean",
   },
   {
-    id: 'arabian-sea',
-    name: 'Arabian Sea',
+    id: "arabian-sea",
+    name: "Arabian Sea",
     center: [15, 65],
-    description: 'Western Indian Ocean basin',
+    description: "Western Indian Ocean basin",
   },
   {
-    id: 'indian-ocean',
-    name: 'Indian Ocean',
+    id: "indian-ocean",
+    name: "Indian Ocean",
     center: [-10, 80],
-    description: 'Large-scale Indian Ocean domain',
+    description: "Large-scale Indian Ocean domain",
   },
   {
-    id: 'north-atlantic',
-    name: 'North Atlantic',
+    id: "north-atlantic",
+    name: "North Atlantic",
     center: [35, -45],
-    description: 'North Atlantic Ocean domain',
+    description: "North Atlantic Ocean domain",
   },
-]
+];
 
 export const argoFloats: ArgoFloat[] = [
   {
-    id: 'ARGO-2901',
-    name: 'ARGO-2901',
+    id: "ARGO-2901",
+    name: "ARGO-2901",
     latitude: 15.2,
     longitude: 88.4,
     temperature: 28.4,
@@ -43,8 +45,8 @@ export const argoFloats: ArgoFloat[] = [
     depth: 100,
   },
   {
-    id: 'ARGO-3147',
-    name: 'ARGO-3147',
+    id: "ARGO-3147",
+    name: "ARGO-3147",
     latitude: 13.7,
     longitude: 86.9,
     temperature: 27.8,
@@ -52,8 +54,8 @@ export const argoFloats: ArgoFloat[] = [
     depth: 250,
   },
   {
-    id: 'ARGO-4278',
-    name: 'ARGO-4278',
+    id: "ARGO-4278",
+    name: "ARGO-4278",
     latitude: 17.1,
     longitude: 90.1,
     temperature: 29.1,
@@ -61,8 +63,8 @@ export const argoFloats: ArgoFloat[] = [
     depth: 150,
   },
   {
-    id: 'ARGO-5182',
-    name: 'ARGO-5182',
+    id: "ARGO-5182",
+    name: "ARGO-5182",
     latitude: 11.9,
     longitude: 89.2,
     temperature: 26.9,
@@ -70,8 +72,8 @@ export const argoFloats: ArgoFloat[] = [
     depth: 350,
   },
   {
-    id: 'ARGO-6044',
-    name: 'ARGO-6044',
+    id: "ARGO-6044",
+    name: "ARGO-6044",
     latitude: 16.4,
     longitude: 85.7,
     temperature: 28.8,
@@ -79,15 +81,149 @@ export const argoFloats: ArgoFloat[] = [
     depth: 200,
   },
   {
-    id: 'ARGO-7315',
-    name: 'ARGO-7315',
+    id: "ARGO-7315",
+    name: "ARGO-7315",
     latitude: 14.3,
     longitude: 91.2,
     temperature: 27.4,
     salinity: 35.2,
     depth: 450,
   },
-]
+];
+
+export const mockArgoObservations: ArgoObservation[] = [
+  {
+    id: "OBS-ARGO-2901-001",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-2901",
+    latitude: 15.2,
+    longitude: 88.4,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 0,
+    temperature: 29.1,
+    salinity: 34.1,
+  },
+  {
+    id: "OBS-ARGO-2901-002",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-2901",
+    latitude: 15.2,
+    longitude: 88.4,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 50,
+    temperature: 28.4,
+    salinity: 34.5,
+  },
+  {
+    id: "OBS-ARGO-2901-003",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-2901",
+    latitude: 15.2,
+    longitude: 88.4,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 100,
+    temperature: 27.5,
+    salinity: 34.8,
+  },
+  {
+    id: "OBS-ARGO-3147-001",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-3147",
+    latitude: 13.7,
+    longitude: 86.9,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 0,
+    temperature: 28.8,
+    salinity: 34.3,
+  },
+  {
+    id: "OBS-ARGO-3147-002",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-3147",
+    latitude: 13.7,
+    longitude: 86.9,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 50,
+    temperature: 28.0,
+    salinity: 34.7,
+  },
+  {
+    id: "OBS-ARGO-3147-003",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-3147",
+    latitude: 13.7,
+    longitude: 86.9,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 100,
+    temperature: 27.1,
+    salinity: 35.0,
+  },
+  {
+    id: "OBS-ARGO-4278-001",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-4278",
+    latitude: 17.1,
+    longitude: 90.1,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 0,
+    temperature: 29.3,
+    salinity: 34.2,
+  },
+  {
+    id: "OBS-ARGO-4278-002",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-4278",
+    latitude: 17.1,
+    longitude: 90.1,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 50,
+    temperature: 28.6,
+    salinity: 34.6,
+  },
+  {
+    id: "OBS-ARGO-4278-003",
+    regionId: "bay-of-bengal",
+    floatId: "ARGO-4278",
+    latitude: 17.1,
+    longitude: 90.1,
+    observationTime: "2026-09-10T00:00:00Z",
+    depth: 100,
+    temperature: 27.9,
+    salinity: 34.9,
+  },
+];
+
+export const mockOceanPoints: OceanPoint[] = [
+  { latitude: 11, longitude: 84, value: 27.1 },
+  { latitude: 11, longitude: 86, value: 27.5 },
+  { latitude: 11, longitude: 88, value: 27.8 },
+  { latitude: 11, longitude: 90, value: 28.0 },
+  { latitude: 11, longitude: 92, value: 28.2 },
+
+  { latitude: 13, longitude: 84, value: 27.6 },
+  { latitude: 13, longitude: 86, value: 28.0 },
+  { latitude: 13, longitude: 88, value: 28.3 },
+  { latitude: 13, longitude: 90, value: 28.5 },
+  { latitude: 13, longitude: 92, value: 28.7 },
+
+  { latitude: 15, longitude: 84, value: 28.0 },
+  { latitude: 15, longitude: 86, value: 28.4 },
+  { latitude: 15, longitude: 88, value: 28.7 },
+  { latitude: 15, longitude: 90, value: 28.9 },
+  { latitude: 15, longitude: 92, value: 29.1 },
+
+  { latitude: 17, longitude: 84, value: 28.3 },
+  { latitude: 17, longitude: 86, value: 28.7 },
+  { latitude: 17, longitude: 88, value: 29.0 },
+  { latitude: 17, longitude: 90, value: 29.2 },
+  { latitude: 17, longitude: 92, value: 29.3 },
+
+  { latitude: 19, longitude: 84, value: 28.6 },
+  { latitude: 19, longitude: 86, value: 28.9 },
+  { latitude: 19, longitude: 88, value: 29.2 },
+  { latitude: 19, longitude: 90, value: 29.4 },
+  { latitude: 19, longitude: 92, value: 29.5 },
+];
 
 export const temperatureProfile: ProfilePoint[] = [
   { depth: 0, observation: 29.1, model: 28.9 },
@@ -103,7 +239,7 @@ export const temperatureProfile: ProfilePoint[] = [
   { depth: 600, observation: 20.4, model: 20.5 },
   { depth: 750, observation: 18.8, model: 19.0 },
   { depth: 1000, observation: 16.9, model: 17.2 },
-]
+];
 
 export const salinityProfile: ProfilePoint[] = [
   { depth: 0, observation: 34.1, model: 34.3 },
@@ -119,11 +255,11 @@ export const salinityProfile: ProfilePoint[] = [
   { depth: 600, observation: 35.5, model: 35.4 },
   { depth: 750, observation: 35.6, model: 35.5 },
   { depth: 1000, observation: 35.7, model: 35.6 },
-]
+];
 
 export const validationMetrics: ValidationMetrics = {
   bias: 0.18,
   rmse: 0.42,
   samples: 13,
   agreement: 94.2,
-}
+};

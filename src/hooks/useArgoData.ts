@@ -34,9 +34,6 @@ export function useArgoData(
       setError(null);
 
       try {
-        /*
-         * First try the real FastAPI backend.
-         */
         const data = await getArgoData(regionId);
 
         if (cancelled) return;
@@ -46,14 +43,8 @@ export function useArgoData(
           data.observations.length > 0
         ) {
           setObservations(data.observations);
-          setSource(
-            data.source || "observation"
-          );
+          setSource(data.source || "observation");
         } else {
-          /*
-           * Backend responded but returned no
-           * observations. Use region-specific mock data.
-           */
           const filteredMock =
             mockArgoObservations.filter(
               (observation) =>
@@ -66,12 +57,6 @@ export function useArgoData(
       } catch (err) {
         if (cancelled) return;
 
-        /*
-         * Backend is not running yet.
-         *
-         * Use only the mock observations belonging
-         * to the currently selected region.
-         */
         const filteredMock =
           mockArgoObservations.filter(
             (observation) =>

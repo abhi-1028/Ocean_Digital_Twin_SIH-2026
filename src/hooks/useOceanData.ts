@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { getOceanData } from "../api/oceanApi";
 import { mockOceanPoints } from "../data/mockData";
 
-import type { OceanPoint, OceanVariable } from "../types/ocean";
+import type {
+  OceanPoint,
+  OceanVariable,
+} from "../types/ocean";
 
 interface UseOceanDataResult {
   points: OceanPoint[];
@@ -17,10 +20,16 @@ export function useOceanData(
   variable: OceanVariable,
   depth: number
 ): UseOceanDataResult {
-  const [points, setPoints] = useState<OceanPoint[]>(mockOceanPoints);
+  const [points, setPoints] =
+    useState<OceanPoint[]>(mockOceanPoints);
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<"model" | "mock">("mock");
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [source, setSource] =
+    useState<"model" | "mock">("mock");
 
   useEffect(() => {
     let cancelled = false;
@@ -30,11 +39,18 @@ export function useOceanData(
       setError(null);
 
       try {
-        const data = await getOceanData(regionId, variable, depth);
+        const data = await getOceanData(
+          regionId,
+          variable,
+          depth
+        );
 
         if (cancelled) return;
 
-        if (data.points && data.points.length > 0) {
+        if (
+          data.points &&
+          data.points.length > 0
+        ) {
           setPoints(data.points);
           setSource(data.source || "model");
         } else {
