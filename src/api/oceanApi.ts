@@ -11,12 +11,18 @@ export function getOceanData(
   regionId: string,
   variable: OceanVariable,
   depth: number,
+  time?: string | null,
 ) {
   const params = new URLSearchParams({
     variable,
     depth: String(depth),
     max_points: '1200',
   })
+
+  if (time) {
+    params.set('time', time)
+  }
+
   return apiGet<BackendOceanDataResponse>(
     `/api/ocean/${encodeURIComponent(regionId)}?${params.toString()}`,
   )
